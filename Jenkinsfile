@@ -11,7 +11,7 @@ pipeline {
         stage('📥 Clone Repository') {
             steps {
                 echo '🔄 Cloning Git repository...'
-                git 'https://github.com/Abhilashasheoran/flask-jenkins-devops.git'
+                git 'https://github.com/abhilashasheoran/flask-jenkins-devops.git'
             }
         }
 
@@ -59,3 +59,4 @@ pipeline {
         }
     }
 }
+
