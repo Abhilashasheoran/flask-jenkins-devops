@@ -2,66 +2,60 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'flaskapp:latest'
+        IMAGE_NAME = 'flaskapp'
         CONTAINER_NAME = 'flaskapp'
-        APP_PORT = '5000'
+        PORT = '5000'
     }
 
     stages {
-
         stage('📥 Clone Repository') {
             steps {
-                echo "🔄 Cloning Git repository..."
-                git branch: 'main', url: 'https://github.com/abhilashasheoran/flask-jenkins-devops.git'
+                echo '🔄 Cloning Git repository...'
+                git 'https://github.com/Abhilashasheoran/flask-jenkins-devops.git'
             }
         }
 
         stage('📦 Install Python Dependencies') {
             steps {
-                echo "📦 Installing Python dependencies..."
-                sh 'pip3 install -r requirements.txt'
+                echo '📦 Installing Python dependencies...'
+                sh 'pip3 install --user -r requirements.txt'
             }
         }
 
         stage('✅ Run Unit Tests') {
             steps {
-                echo "🧪 Running unit tests..."
+                echo '🧪 Running unit tests...'
                 sh 'python3 -m pytest'
             }
         }
 
         stage('🧽 Clean Old Docker Resources') {
             steps {
-                echo "🧹 Stopping and removing any existing container..."
-                sh """
-                   sudo  podman stop $CONTAINER_NAME || true
-                   sudo podman rm $CONTAINER_NAME || true
-                """
+                echo '🧹 Stopping and removing any existing container...'
+                // Remove 'sudo' to avoid terminal password issues
+                sh 'podman stop ${CONTAINER_NAME} || true'
+                sh 'podman rm ${CONTAINER_NAME} || true'
             }
         }
 
         stage('🐳 Build Docker Image') {
             steps {
-                echo "🐳 Building Docker image..."
-                sh "sudo podman build -t $IMAGE_NAME ."
+                echo '🐳 Building Docker image...'
+                sh 'podman build -t ${IMAGE_NAME}:latest .'
             }
         }
 
         stage('🚀 Run Docker Container') {
             steps {
-                echo "🚀 Running Docker container..."
-                sh "sudo podman run -d -p $APP_PORT:$APP_PORT --name $CONTAINER_NAME $IMAGE_NAME"
+                echo '🚀 Running Docker container...'
+                sh 'podman run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${IMAGE_NAME}:latest'
             }
         }
     }
 
     post {
-        success {
-            echo '✅ Flask App Deployed Locally via Docker!'
-        }
         failure {
             echo '❌ Build/Deployment Failed. Check Console Output.'
         }
     }
 }
-
